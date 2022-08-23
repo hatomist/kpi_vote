@@ -1,0 +1,22 @@
+version: '3'
+
+services:
+  bot:
+    build: .
+    depends_on:
+      - mongo
+    volumes:
+      - ./data:/usr/src/app/data
+    command: bash -c "python -u main.py"
+    environment:
+      BOT_TOKEN: 'x'
+      BOT_ADMIN_CHAT: -1
+
+  mongo:
+    image: mongo:latest
+    restart: always
+    expose:
+      - 27020
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: toor
