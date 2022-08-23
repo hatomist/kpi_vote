@@ -379,7 +379,15 @@ def apply_handlers(aq: AdmissionQueue):
                 await aq.bot.send_message(user['uid'], 'Результати голосувань:\n' + res[user['faculty']], parse_mode=types.ParseMode.HTML)
                 await asyncio.sleep(0.1)
 
-            await message.reply('Done')
+            reply = ''
+            for faculty in aq.faculties:
+                reply += f'<b><i>{faculty}</i></b>\n\n'
+                reply += res[faculty]
+            reply_bytes = BytesIO()
+            reply_bytes.write(reply.encode())
+            reply_bytes.seek(0)
+            file = types.InputFile(reply_bytes, 'result.txt')
+            await message.reply_document(reply_bytes)
 
     handlers = [
         {'fun': start_handler, 'named': {'commands': ['start']}},
