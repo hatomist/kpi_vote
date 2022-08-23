@@ -234,28 +234,35 @@ def apply_handlers(aq: AdmissionQueue):
         votes = aq.faculties[user['faculty']]
         user = await db.users.find_one_and_update({'uid': user['uid']}, {'$set': {'voted': True}},
                                                   return_document=ReturnDocument.BEFORE)
+        reply = t('VOTED_FOR', locale=user['lang'])
         if not user['voted'] and user['verified'] and \
                 all([len(state['votes'][f'vote_{vote_num}']['selected_candidates']) <= votes[f'vote_{vote_num}'][
                     'quota']
                      for vote_num in range(4)]):
             for vote_num in range(4):
+                reply += f"<b>{t(f'VOTE' + str(vote_num+1), faculty=user['faculty'], locale=user['lang']) }</b>\n"
                 for candidate in state['votes'][f'vote_{vote_num}']['selected_candidates']:
                     c_profile = votes[f'vote_{vote_num}']['candidates'][candidate]
                     await db.votes.find_one_and_update({'faculty': user['faculty'], 'vote': vote_num,
                                                         'name': c_profile['name'], 'group': c_profile['group']},
                                                        {'$inc': {'votes': 1}}, upsert=True)
+                    reply += f"{c_profile['name']} - {c_profile['group']}\n"
+
+            reply += '\n\n'
+
+            await message.edit_text(reply + t('SUCCESSFULLY_VOTED', locale=user['lang']))
 
             state['votes'].clear()  # clear in-memory array of candidates voted for by this user
-
-            await message.edit_text(t('SUCCESSFULLY_VOTED', locale=user['lang']))
         else:
             logger.warning('Attempt to submit_votes while not verified/already voted/invalid quotas')
+            logger.warning(user)
             pass
 
     async def show_vote(user, message: types.Message):
         vote_num = aq.users_state[user['uid']]['vote_num']
         state = aq.users_state[user['uid']]['votes'][f'vote_{vote_num}']
         resp = t(f'VOTE{vote_num + 1}', faculty=user['faculty'], locale=user['lang']) + '\n\n'
+        resp += t('VOTE_HOWTO', locale=user['lang']) + '\n\n'
         vote = aq.faculties[user['faculty']][f'vote_{vote_num}']
         is_selected = state['current_candidate'] in state['selected_candidates']
         for num, c in enumerate(vote['candidates']):
