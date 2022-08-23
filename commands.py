@@ -1,3 +1,5 @@
+import asyncio
+from collections import defaultdict
 from io import BytesIO
 from aiogram import types
 from i18n import t
@@ -250,7 +252,7 @@ def apply_handlers(aq: AdmissionQueue):
 
             reply += '\n\n'
 
-            await message.edit_text(reply + t('SUCCESSFULLY_VOTED', locale=user['lang']))
+            await message.edit_text(reply + t('SUCCESSFULLY_VOTED', locale=user['lang']), parse_mode=types.ParseMode.HTML)
 
             state['votes'].clear()  # clear in-memory array of candidates voted for by this user
         else:
@@ -360,8 +362,28 @@ def apply_handlers(aq: AdmissionQueue):
                 #                                    {'$set': {'verified': True, 'stage': Stage.start_votes,
                 #                                              'stud_id': stud_id}})
 
+    async def calc_handler(message: types.Message):
+        if message.chat.id == aq.adm_chat_id:
+            res = defaultdict(lambda: '')
+            for faculty in aq.faculties:
+                for vote_num in range(4):
+                    cur = db.votes.find({'faculty': faculty, 'vote': vote_num})
+                    cur.sort('votes', -1).limit(aq.faculties[faculty][f'vote_{vote_num}']['quota'])
+                    line = t(f'VOTE{vote_num+1}_NONUM', faculty=faculty) + '\n'
+                    async for doc in cur:
+                        line += f'{doc["name"]} - {doc["votes"]} голосів\n'
+                    res[faculty] += line + '\n'
+
+            users = db.users.find({'faculty': {'$exists': True}})
+            async for user in users:
+                await aq.bot.send_message(user['uid'], 'Результати голосувань:\n' + res[user['faculty']], parse_mode=types.ParseMode.HTML)
+                await asyncio.sleep(0.1)
+
+            await message.reply('Done')
+
     handlers = [
         {'fun': start_handler, 'named': {'commands': ['start']}},
+        {'fun': calc_handler, 'named': {'commands': ['calc']}},
         {'fun': photo_handler, 'named': {'content_types': types.ContentType.PHOTO}},
         {'fun': text_handler, 'named': {'content_types': types.ContentType.TEXT}}
     ]
