@@ -249,6 +249,8 @@ def apply_handlers(aq: AdmissionQueue):
                                                         'name': c_profile['name'], 'group': c_profile['group']},
                                                        {'$inc': {'votes': 1}}, upsert=True)
                     reply += f"{c_profile['name']} - {c_profile['group']}\n"
+                if not state['votes'][f'vote_{vote_num}']['selected_candidates']:
+                    reply += f"{t('AGAINST_ALL', locale=user['lang'])}\n"
 
             reply += '\n\n'
 
