@@ -198,7 +198,7 @@ def apply_handlers(aq: AdmissionQueue):
                     f'{t("VOTE_CONFIRMATION", locale=user["lang"])}\n\n' \
                     f'<b>'
             for c in state['selected_candidates']:
-                reply += f'● {candidates[c]["group"]} - {candidates[c]["name"]}\n'
+                reply += f'● {candidates[c]["name"]} - {candidates[c]["group"]}\n'
             if not state['selected_candidates']:
                 reply += t('AGAINST_ALL', locale=user['lang'])
             reply += '</b>'
@@ -260,12 +260,12 @@ def apply_handlers(aq: AdmissionQueue):
         is_selected = state['current_candidate'] in state['selected_candidates']
         for num, c in enumerate(vote['candidates']):
             if num == state['current_candidate']:
-                resp += '<b>'
+                resp += '<b>➡️'
 
             if num in state['selected_candidates']:
-                resp += f'✅ {c["group"]} - {c["name"]}'
+                resp += f'✅ {c["name"]} - {c["group"]}'
             else:
-                resp += f'●   {c["group"]} - {c["name"]}'
+                resp += f'●   {c["name"]} - {c["group"]}'
 
             if num == state['current_candidate']:
                 resp += '</b>'
@@ -302,7 +302,7 @@ def apply_handlers(aq: AdmissionQueue):
                 if match:
                     match_user = await aq.bot.get_chat(match['uid'])
                     username = f'@{match_user.username}\n' if match_user.username else f'<a href="tg://user?id={match.id}">{alnum(match_user.full_name)}</a>\n'
-                    reply_msg += f'⚠️⚠️⚠️ Цей студентський вже використав {username} ⚠️⚠️⚠️\n'
+                    reply_msg += f'#TODO\n⚠️⚠️⚠️ Цей студентський вже використав {username} ⚠️⚠️⚠️\n'
                 reply_msg += f'ID: {code}\n'
 
             if not reply_msg:
