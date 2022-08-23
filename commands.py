@@ -311,12 +311,13 @@ def apply_handlers(aq: AdmissionQueue):
                 if match:
                     match_user = await aq.bot.get_chat(match['uid'])
                     username = f'@{match_user.username}\n' if match_user.username else f'<a href="tg://user?id={match.id}">{alnum(match_user.full_name)}</a>\n'
-                    reply_msg += f'#TODO\n⚠️⚠️⚠️ Цей студентський вже використав {username} ⚠️⚠️⚠️\n'
+                    reply_msg += f'\n⚠️⚠️⚠️ Цей студентський вже використав {username} ⚠️⚠️⚠️\n'
                 reply_msg += f'ID: {code}\n'
 
             if not reply_msg:
                 reply_msg = 'Реплайніть на це повідомлення ID студентського\n'
 
+            reply_msg += '#TODO\n'
             reply_msg += f'Факультет: {user["faculty"]}\n'
             reply_msg += f'@{message.from_user.username}' if message.from_user.username else f'<a href="tg://user?id={user["uid"]}">{alnum(message.from_user.full_name)}</a>\n'
             await message.bot.send_photo(chat_id=aq.adm_chat_id,
