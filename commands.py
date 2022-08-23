@@ -240,7 +240,7 @@ def apply_handlers(aq: AdmissionQueue):
                     'quota']
                      for vote_num in range(4)]):
             for vote_num in range(4):
-                reply += f"<b>{t(f'VOTE' + str(vote_num+1), faculty=user['faculty'], locale=user['lang']) }</b>\n"
+                reply += f"\n{t(f'VOTE' + str(vote_num+1), faculty=user['faculty'], locale=user['lang']) }\n"
                 for candidate in state['votes'][f'vote_{vote_num}']['selected_candidates']:
                     c_profile = votes[f'vote_{vote_num}']['candidates'][candidate]
                     await db.votes.find_one_and_update({'faculty': user['faculty'], 'vote': vote_num,
