@@ -10,5 +10,5 @@ COPY requirements.txt .
 RUN pip install -r requirements.txt
 
 ENV PYTHONBUFFERED 1
-COPY ./*.py .
+COPY ./*.py ./
 COPY ./translations ./translations
