@@ -24,7 +24,7 @@ def alnum(x: str):
 
 def apply_handlers(aq: AdmissionQueue):
     async def start_handler(message: types.Message):
-        if message.chat.id == aq.adm_chat_id:
+        if message.chat.id in aq.adm_chat_ids:
             return
 
         prometheus.start_handler_cnt.inc({})
@@ -43,7 +43,7 @@ def apply_handlers(aq: AdmissionQueue):
                                 parse_mode=types.ParseMode.HTML)
 
     async def query_handler(query: types.CallbackQuery):
-        if query.message.chat.id == aq.adm_chat_id:
+        if query.message.chat.id in aq.adm_chat_ids:
             if query.data.startswith('IDConfirm'):
                 uid, stud_id = map(int, query.data.split('IDConfirm', 1)[1].split(','))
                 user = await db.users.find_one({'uid': uid})
@@ -322,14 +322,14 @@ def apply_handlers(aq: AdmissionQueue):
             reply_msg += '#TODO\n'
             reply_msg += f'Факультет: {user["faculty"]}\n'
             reply_msg += f'@{message.from_user.username}' if message.from_user.username else f'<a href="tg://user?id={user["uid"]}">{alnum(message.from_user.full_name)}</a>\n'
-            await message.bot.send_photo(chat_id=aq.adm_chat_id,
+            await message.bot.send_photo(chat_id=aq.faculties[user['faculty']]['adm_chat_id'],
                                          photo=photo, caption=reply_msg,
                                          parse_mode=types.ParseMode.HTML,
                                          reply_markup=keyboards.get_photo_kbd(user['uid'], code, lang=user['lang']))
             await message.reply(t('WAIT_FOR_VERIFICATION', locale=user['lang']))
 
     async def text_handler(message: types.Message):
-        if message.chat.id == aq.adm_chat_id:
+        if message.chat.id in aq.adm_chat_ids:
             if message.reply_to_message and message.reply_to_message.from_user.id == aq.bot.id:
                 reply = message.reply_to_message
                 if not message.text.isnumeric():
@@ -366,7 +366,7 @@ def apply_handlers(aq: AdmissionQueue):
                 #                                              'stud_id': stud_id}})
 
     async def calc_handler(message: types.Message):
-        if message.chat.id == aq.adm_chat_id:
+        if message.chat.id in aq.bot_admins:
             res = defaultdict(lambda: '')
             for faculty in aq.faculties:
                 for vote_num in range(4):
@@ -376,6 +376,10 @@ def apply_handlers(aq: AdmissionQueue):
                     async for doc in cur:
                         line += f'{doc["name"]} - {doc["votes"]} голосів\n'
                     res[faculty] += line + '\n'
+
+            for faculty in aq.faculties:
+                await aq.bot.send_message(aq.faculties[faculty]['adm_chat_id'], 'Результати голосувань:\n' + res[faculty], parse_mode=types.ParseMode.HTML)
+                await asyncio.sleep(0.1)
 
             users = db.users.find({'faculty': {'$exists': True}})
             async for user in users:

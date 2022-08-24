@@ -31,11 +31,7 @@ class AdmissionQueue:
         self.dp = Dispatcher(self.bot)
         commands.apply_handlers(self)
 
-        try:
-            self.adm_chat_id = int(os.environ['BOT_ADMIN_CHAT'])
-        except KeyError:
-            logging.critical('Please specify BOT_ADMIN_CHAT ENV variable')
-            exit(-1)
+        self.adm_chat_ids = []
 
         # i18n setup
 
@@ -86,6 +82,8 @@ class AdmissionQueue:
         # initialize state
         self.faculties = {}
 
+        self.bot_admins = [364702722]
+
         with open('data/quotas.csv', 'r') as quotas:
             quotas.readline()
             r = csv.reader(quotas, delimiter=',')
@@ -93,7 +91,9 @@ class AdmissionQueue:
                 self.faculties[row[0].strip()] = {'vote_0':  {'quota': int(row[1]), 'candidates': []},
                                                   'vote_1': {'quota': int(row[2]), 'candidates': []},
                                                   'vote_2': {'quota': int(row[3]), 'candidates': []},
-                                                  'vote_3': {'quota': int(row[4]), 'candidates': []}}
+                                                  'vote_3': {'quota': int(row[4]), 'candidates': []},
+                                                  'adm_chat_id': int(row[5])}
+                self.adm_chat_ids.append(int(row[5]))
 
         with open('data/candidates.csv', 'r') as candidates:
             candidates.readline()
