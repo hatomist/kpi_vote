@@ -113,7 +113,8 @@ class AdmissionQueue:
 
         for faculty in self.faculties:
             for vote in self.faculties[faculty]:
-                self.faculties[faculty][vote]['candidates'].sort(key=lambda x: x['name'])
+                if vote.startswith('vote_'):
+                    self.faculties[faculty][vote]['candidates'].sort(key=lambda x: x['name'])
 
         self.users_state = defaultdict(lambda:
                                        {'vote_num': 0, 'votes': {
