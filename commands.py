@@ -38,7 +38,7 @@ def apply_handlers(aq: AdmissionQueue):
                                         'verified': False, 'voted': False})
             await message.reply(f"{t('GREETINGS', locale='ua')}\n\n"
                                 f"{t('ASK_FACULTY', locale='ua')}\n"
-                                f"{t('PAGE', page=1, total=len(aq.faculties) // 8, locale='ua')}",
+                                f"{t('PAGE', page=1, total=(len(aq.faculties) + 7) // 8, locale='ua')}",
                                 reply_markup=keyboards.get_faculties_kbd(list(aq.faculties.keys())),
                                 parse_mode=types.ParseMode.HTML)
 
@@ -108,7 +108,7 @@ def apply_handlers(aq: AdmissionQueue):
                 await query.message.edit_caption(reply_msg, parse_mode=types.ParseMode.HTML)
                 await db.users.find_one_and_update({'uid': uid}, {'$set': {'stage': Stage.ask_faculty, 'page': 0, }})
                 await aq.bot.send_message(uid, t('WRONG_FACULTY', locale=user['lang']) + '\n' +
-                                          f"{t('PAGE', page=1, total=len(aq.faculties) // 8, locale='ua')}",
+                                          f"{t('PAGE', page=1, total=(len(aq.faculties) + 7) // 8, locale='ua')}",
                                           reply_markup=keyboards.get_faculties_kbd(list(aq.faculties.keys())),
                                           parse_mode=types.ParseMode.HTML)
 
@@ -137,7 +137,7 @@ def apply_handlers(aq: AdmissionQueue):
 
         elif query.data.startswith('FacultyDeny'):
             await query.message.edit_text(f"{t('ASK_FACULTY', locale='ua')}\n"
-                                          f"{t('PAGE', page=1, total=len(aq.faculties) // 8, locale='ua')}",
+                                          f"{t('PAGE', page=1, total=(len(aq.faculties) + 7) // 8, locale='ua')}",
                                           reply_markup=keyboards.get_faculties_kbd(list(aq.faculties.keys())),
                                           parse_mode=types.ParseMode.HTML)
 
@@ -149,7 +149,7 @@ def apply_handlers(aq: AdmissionQueue):
 
                 await query.answer()
                 await query.message.edit_text(f"{t('ASK_FACULTY', locale='ua')}\n"
-                                              f"{t('PAGE', page=user['page'] + 1, total=len(aq.faculties) // 8, locale='ua')}",
+                                              f"{t('PAGE', page=user['page'] + 1, total=(len(aq.faculties) + 7) // 8, locale='ua')}",
                                               reply_markup=keyboards.get_faculties_kbd(list(aq.faculties.keys()),
                                                                                        user['page'], user['lang']),
                                               parse_mode=types.ParseMode.HTML)
