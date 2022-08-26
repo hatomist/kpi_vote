@@ -143,7 +143,7 @@ def apply_handlers(aq: AdmissionQueue):
 
         elif query.data.startswith('BtnLeft') or query.data.startswith('BtnRight'):
             if user['stage'] == Stage.ask_faculty:
-                max_faculty_pages = len(aq.faculties) // 8
+                max_faculty_pages = (len(aq.faculties) + 7) // 8
                 user['page'] += -1 if query.data.startswith('BtnLeft') else 1
                 user['page'] %= max_faculty_pages
 
