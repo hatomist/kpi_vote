@@ -48,6 +48,13 @@ def get_start_vote_kbd(lang='ua'):
     )
 
 
+def get_vote_skip_kbd(lang='ua'):
+    return types.InlineKeyboardMarkup(
+        row_width=2,
+        inline_keyboard=[[types.InlineKeyboardButton(t('BTN_SKIP_VOTE', locale=lang), callback_data='VoteSubmit')]]
+    )
+
+
 def get_vote_kbd(is_selected, is_maxed_out, is_zero, lang='ua'):
     kbd = [
         [

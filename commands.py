@@ -242,7 +242,7 @@ def apply_handlers(aq: AdmissionQueue):
                     'quota']
                      for vote_num in range(4)]):
             for vote_num in range(4):
-                reply += f"\n{t(f'VOTE' + str(vote_num+1), faculty=user['faculty'], locale=user['lang']) }\n"
+                reply += f"\n{t(f'VOTE' + str(vote_num + 1), faculty=user['faculty'], locale=user['lang'])}\n"
                 for candidate in state['votes'][f'vote_{vote_num}']['selected_candidates']:
                     c_profile = votes[f'vote_{vote_num}']['candidates'][candidate]
                     await db.votes.find_one_and_update({'faculty': user['faculty'], 'vote': vote_num,
@@ -254,7 +254,8 @@ def apply_handlers(aq: AdmissionQueue):
 
             reply += '\n\n'
 
-            await message.edit_text(reply + t('SUCCESSFULLY_VOTED', locale=user['lang']), parse_mode=types.ParseMode.HTML)
+            await message.edit_text(reply + t('SUCCESSFULLY_VOTED', locale=user['lang']),
+                                    parse_mode=types.ParseMode.HTML)
 
             state['votes'].clear()  # clear in-memory array of candidates voted for by this user
         else:
@@ -283,12 +284,18 @@ def apply_handlers(aq: AdmissionQueue):
 
             resp += '\n'
 
-        resp += f'\n{t("VOTE_CNT", num=len(state["selected_candidates"]), total=vote["quota"])}'
+        resp += f'\n{t("VOTE_CNT", num=len(state["selected_candidates"]), total=min(vote["quota"], len(vote["candidates"])))}'
 
         is_maxed_out = len(state['selected_candidates']) == vote['quota']
         is_zero = len(state['selected_candidates']) == 0
 
-        await message.edit_text(resp, reply_markup=keyboards.get_vote_kbd(is_selected, is_maxed_out, is_zero, user['lang']),
+        if len(vote['candidates']) == 0:
+            return await message.edit_text(t(f'VOTE{vote_num + 1}', faculty=user['faculty'], locale=user['lang'])
+                                           + '\n\n' + t('NO_CANDIDATES', locale=user['lang']),
+                                           reply_markup=keyboards.get_vote_skip_kbd(user['lang']),
+                                           parse_mode=types.ParseMode.HTML)
+        await message.edit_text(resp,
+                                reply_markup=keyboards.get_vote_kbd(is_selected, is_maxed_out, is_zero, user['lang']),
                                 parse_mode=types.ParseMode.HTML)
 
     async def photo_handler(message: types.Message):
@@ -372,18 +379,20 @@ def apply_handlers(aq: AdmissionQueue):
                 for vote_num in range(4):
                     cur = db.votes.find({'faculty': faculty, 'vote': vote_num})
                     cur.sort('votes', -1).limit(aq.faculties[faculty][f'vote_{vote_num}']['quota'])
-                    line = t(f'VOTE{vote_num+1}_NONUM', faculty=faculty) + '\n'
+                    line = t(f'VOTE{vote_num + 1}_NONUM', faculty=faculty) + '\n'
                     async for doc in cur:
                         line += f'{doc["name"]} - {doc["votes"]} голосів\n'
                     res[faculty] += line + '\n'
 
             for faculty in aq.faculties:
-                await aq.bot.send_message(aq.faculties[faculty]['adm_chat_id'], 'Результати голосувань:\n' + res[faculty], parse_mode=types.ParseMode.HTML)
+                await aq.bot.send_message(aq.faculties[faculty]['adm_chat_id'],
+                                          'Результати голосувань:\n' + res[faculty], parse_mode=types.ParseMode.HTML)
                 await asyncio.sleep(0.1)
 
             users = db.users.find({'faculty': {'$exists': True}})
             async for user in users:
-                await aq.bot.send_message(user['uid'], 'Результати голосувань:\n' + res[user['faculty']], parse_mode=types.ParseMode.HTML)
+                await aq.bot.send_message(user['uid'], 'Результати голосувань:\n' + res[user['faculty']],
+                                          parse_mode=types.ParseMode.HTML)
                 await asyncio.sleep(0.1)
 
             reply = ''
